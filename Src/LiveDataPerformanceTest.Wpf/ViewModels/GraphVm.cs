@@ -151,36 +151,42 @@ namespace LiveDataPerformanceTest.Wpf.ViewModels
 
         private void UpdatePlot()
         {
-            if (!_prevTimestamp.HasValue)
+            // Prevent collection modified exception inside LivePlotModel, 
+            // when manipulating it outside the GUI thread.
+            lock (LivePlotModel.SyncRoot)
             {
-                _prevTimestamp = TimeSpan.Zero;
-                return;
-            }
-
-            List<Series> seriesCopy = LivePlotModel.Series.ToList();
-            TimeSpan samplingPeriod = TimeSpan.FromSeconds(1d/SampleRate);
-            DateTime utcNow = DateTime.UtcNow;
-
-            for (int seriesIndex = 0; seriesIndex < seriesCopy.Count; seriesIndex++)
-            {
-                var series = (LineSeries) seriesCopy[seriesIndex];
-                series.Points.Clear();
-
-                TimeSpan nowSampleTime = utcNow - _startUtc;
-                TimeSpan timestamp = nowSampleTime - GraphTimelineWindow;
-
-                while ((timestamp += samplingPeriod) < nowSampleTime)
+                if (!_prevTimestamp.HasValue)
                 {
-                    // Pseudo data, 1 Hz sinus curves with each series phase shift evenly.
-                    double x = timestamp.TotalSeconds;
-                    series.Points.Add(new DataPoint(x,
-                        50*Math.Sin(1*x*2*Math.PI + ((double) seriesIndex/seriesCopy.Count)*2*Math.PI)));
+                    _prevTimestamp = TimeSpan.Zero;
+                    return;
                 }
+
+                List<Series> seriesCopy = LivePlotModel.Series.ToList();
+                TimeSpan samplingPeriod = TimeSpan.FromSeconds(1d/SampleRate);
+                DateTime utcNow = DateTime.UtcNow;
+
+                for (int seriesIndex = 0; seriesIndex < seriesCopy.Count; seriesIndex++)
+                {
+                    var series = (LineSeries) seriesCopy[seriesIndex];
+                    series.Points.Clear();
+
+                    TimeSpan nowSampleTime = utcNow - _startUtc;
+                    TimeSpan timestamp = nowSampleTime - GraphTimelineWindow;
+
+                    while ((timestamp += samplingPeriod) < nowSampleTime)
+                    {
+                        // Pseudo data, 1 Hz sinus curves with each series phase shift evenly.
+                        double x = timestamp.TotalSeconds;
+                        series.Points.Add(new DataPoint(x,
+                            50*Math.Sin(1*x*2*Math.PI + ((double) seriesIndex/seriesCopy.Count)*2*Math.PI)));
+                    }
+                }
+
+                _prevTimestamp = TimeSpan.FromSeconds(((LineSeries) LivePlotModel.Series.First()).Points.Last().X);
+
+                LivePlotModel.RefreshPlot(true);
+                
             }
-
-            _prevTimestamp = TimeSpan.FromSeconds(((LineSeries) LivePlotModel.Series.First()).Points.Last().X);
-
-            LivePlotModel.RefreshPlot(true);
         }
     }
 }
