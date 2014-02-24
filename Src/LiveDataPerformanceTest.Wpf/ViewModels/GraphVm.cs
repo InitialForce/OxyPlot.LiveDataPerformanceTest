@@ -200,8 +200,9 @@ namespace LiveDataPerformanceTest.Wpf.ViewModels
 
                 _prevTimestamp = TimeSpan.FromSeconds(firstSeries.Points.Last().X);
 
-                LivePlotModel.RefreshPlot(true);
             }
+
+            LivePlotModel.RefreshPlot(true);
         }
     }
 }
