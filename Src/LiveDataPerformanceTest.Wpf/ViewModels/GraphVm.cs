@@ -196,7 +196,7 @@ namespace LiveDataPerformanceTest.Wpf.ViewModels
                 }
 
                 LineSeries firstSeries = allSeries.First();
-                Console.WriteLine("Samples per series: " + firstSeries.Points.Count);
+                Console.WriteLine("Sample count [{0}], last time [{1:0.000}]: ", firstSeries.Points.Count, firstSeries.Points.Last().X);
 
                 _prevTimestamp = TimeSpan.FromSeconds(firstSeries.Points.Last().X);
 
