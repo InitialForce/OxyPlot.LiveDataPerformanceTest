@@ -198,10 +198,14 @@ namespace LiveDataPerformanceTest.Wpf.ViewModels
                 }
 
                 LineSeries firstSeries = allSeries.First();
-                Console.WriteLine("Sample count [{0}], last time [{1:0.000}]: ", firstSeries.Points.Count, firstSeries.Points.Last().X);
+
+                if (firstSeries.Points.Count == 0)
+                    return;
+
+                Console.WriteLine("Sample count [{0}], last time [{1:0.000}]: ", firstSeries.Points.Count,
+                    firstSeries.Points.Last().X);
 
                 _prevTimestamp = TimeSpan.FromSeconds(firstSeries.Points.Last().X);
-
             }
 
             LivePlotModel.RefreshPlot(true);
