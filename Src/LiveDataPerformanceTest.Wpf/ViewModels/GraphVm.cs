@@ -161,19 +161,28 @@ namespace LiveDataPerformanceTest.Wpf.ViewModels
                     return;
                 }
 
-                List<Series> seriesCopy = LivePlotModel.Series.ToList();
+                IEnumerable<LineSeries> allSeries = LivePlotModel.Series.Cast<LineSeries>();
+
                 TimeSpan samplingPeriod = TimeSpan.FromSeconds(1d/SampleRate);
+                if (samplingPeriod == TimeSpan.Zero)
+                    return;
+
                 DateTime utcNow = DateTime.UtcNow;
 
-                for (int seriesIndex = 0; seriesIndex < seriesCopy.Count; seriesIndex++)
+                // Clear all data.
+                foreach (LineSeries series in allSeries)
                 {
-                    var series = (LineSeries) seriesCopy[seriesIndex];
                     series.Points.Clear();
+                }
 
-                    TimeSpan nowSampleTime = utcNow - _startUtc;
-                    TimeSpan timestamp = nowSampleTime - GraphTimelineWindow;
+                TimeSpan nowSampleTime = utcNow - _startUtc;
+                TimeSpan timestamp = nowSampleTime - GraphTimelineWindow;
+                int seriesCount = allSeries.Count();
 
-                    while ((timestamp += samplingPeriod) < nowSampleTime)
+                while ((timestamp += samplingPeriod) < nowSampleTime)
+                {
+                    int seriesIndex = 0;
+                    foreach (LineSeries series in allSeries)
                     {
                         // Pseudo data, 1 Hz sinus curves with each series phase shift evenly.
                         double x = timestamp.TotalSeconds;
@@ -182,10 +191,12 @@ namespace LiveDataPerformanceTest.Wpf.ViewModels
                     }
                 }
 
-                _prevTimestamp = TimeSpan.FromSeconds(((LineSeries) LivePlotModel.Series.First()).Points.Last().X);
+                LineSeries firstSeries = allSeries.First();
+                Console.WriteLine("Samples per series: " + firstSeries.Points.Count);
+
+                _prevTimestamp = TimeSpan.FromSeconds(firstSeries.Points.Last().X);
 
                 LivePlotModel.RefreshPlot(true);
-                
             }
         }
     }
