@@ -184,10 +184,14 @@ namespace LiveDataPerformanceTest.Wpf.ViewModels
                     int seriesIndex = 0;
                     foreach (LineSeries series in allSeries)
                     {
-                        // Pseudo data, 1 Hz sinus curves with each series phase shift evenly.
+                        // Pseudo data, 1 Hz sinus curves with a little bit of phase shift for each series.
                         double x = timestamp.TotalSeconds;
-                        series.Points.Add(new DataPoint(x,
-                            50*Math.Sin(1*x*2*Math.PI + ((double) seriesIndex/seriesCopy.Count)*2*Math.PI)));
+                        
+                        // Shift series evenly over half a period.
+                        double phaseShift = ((double) seriesIndex/seriesCount/2)*2*Math.PI;
+
+                        series.Points.Add(new DataPoint(x, 50*Math.Sin(1*x*2*Math.PI + phaseShift)));
+                        seriesIndex++;
                     }
                 }
 
