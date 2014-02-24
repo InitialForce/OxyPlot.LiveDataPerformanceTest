@@ -163,7 +163,9 @@ namespace LiveDataPerformanceTest.Wpf.ViewModels
 
                 IEnumerable<LineSeries> allSeries = LivePlotModel.Series.Cast<LineSeries>();
 
-                TimeSpan samplingPeriod = TimeSpan.FromSeconds(1d/SampleRate);
+                // 1 tick is 100 ns => 1e7
+                double samplingPeriodSeconds = 1d/SampleRate;
+                TimeSpan samplingPeriod = TimeSpan.FromTicks(Convert.ToInt64(samplingPeriodSeconds*1E7));
                 if (samplingPeriod == TimeSpan.Zero)
                     return;
 
@@ -186,7 +188,7 @@ namespace LiveDataPerformanceTest.Wpf.ViewModels
                     {
                         // Pseudo data, 1 Hz sinus curves with a little bit of phase shift for each series.
                         double x = timestamp.TotalSeconds;
-                        
+
                         // Shift series evenly over half a period.
                         double phaseShift = ((double) seriesIndex/seriesCount/2)*2*Math.PI;
 
